@@ -1,5 +1,9 @@
 # Arena Scissors
 
+## Setup
+This project uses the Git Large File Storage project.
+See https://git-lfs.github.com/ for setup information
+
 ## Download example
 ```
 chmod +x vendor/concat_ubuntu
