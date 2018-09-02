@@ -16,30 +16,17 @@ class Detector
   def countdown?(file_path)
     image = ChunkyPNG::Image.from_file(file_path)
 
-    color_counts = {}
-
+    good_colors = 0
     WIDTH_RANGE.each do |width|
       HEIGHT_RANGE.each do |height|
         color = image.get_pixel(width, height)
-        color_counts[color] = color_counts[color] || 0
-        color_counts[color] = color_counts[color] + 1
+        if ChunkyPNG::Color.r(color) > 150
+          good_colors += 1
+        end
       end
     end
 
-    area = WIDTH_OFFSET * HEIGHT_OFFSET
-
-    new_image = ChunkyPNG::Image.new(area, 1)
-
-    column_index = 0
-    color_counts.each do |color, count|
-      (0..count).each do
-        new_image.set_pixel(column_index, 0, color)
-        column_index += 1
-      end
-    end
-
-    new_image.save('output.png')
+    area = BOX_WIDTH * BOX_HEIGHT
+    good_colors > (area * 0.1)
   end
 end
-
-Detector.new.countdown?('spec/fixtures/countdown_frames/frame_000118.png')
