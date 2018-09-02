@@ -1,4 +1,4 @@
-# Arena Scissors
+# Arena Clips
 
 ## Setup
 This project uses the Git Large File Storage project.
