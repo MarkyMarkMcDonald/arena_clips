@@ -1,14 +1,29 @@
 require 'chunky_png'
 
+class Window
+  def initialize(width_offset:, height_offset:, width:, height:)
+    @width_offset = width_offset
+    @height_offset = height_offset
+    @width = width
+    @height = height
+  end
+
+  def width_range
+    @width_offset..(@width_offset + @width)
+  end
+
+  def height_range
+    @height_offset..(@height_offset + @height)
+  end
+
+  def area
+    @width * @height
+  end
+end
+
 class Detector
-  WIDTH_OFFSET = 605
-  BOX_WIDTH = 72
-
-  HEIGHT_OFFSET = 313
-  BOX_HEIGHT = 94
-
-  HEIGHT_RANGE = HEIGHT_OFFSET..(HEIGHT_OFFSET + BOX_HEIGHT)
-  WIDTH_RANGE = WIDTH_OFFSET..(WIDTH_OFFSET + BOX_WIDTH)
+  COUNTDOWN_WINDOW = Window.new(width_offset: 605, height_offset: 313, width: 72, height: 94)
+  ENDING_WINDOW = Window.new(width_offset: 347, height_offset: 352, width: 550, height: 120)
 
   def initialize
   end
@@ -16,17 +31,34 @@ class Detector
   def countdown?(file_path)
     image = ChunkyPNG::Image.from_file(file_path)
 
-    good_colors = 0
-    WIDTH_RANGE.each do |width|
-      HEIGHT_RANGE.each do |height|
-        color = image.get_pixel(width, height)
-        if ChunkyPNG::Color.r(color) > 150
-          good_colors += 1
+    good_colors = in_window(image, COUNTDOWN_WINDOW).select do |color|
+      ChunkyPNG::Color.r(color) > 150
+    end
+
+    good_colors.count > COUNTDOWN_WINDOW.area * 0.1
+  end
+
+  def ending?(file_path)
+    image = ChunkyPNG::Image.from_file(file_path)
+
+    good_colors = in_window(image, ENDING_WINDOW).select do |color|
+      ChunkyPNG::Color.r(color) < 25 &&
+      ChunkyPNG::Color.g(color) < 25 &&
+      ChunkyPNG::Color.b(color) < 25
+    end
+
+    good_colors.count > ENDING_WINDOW.area * 0.9
+  end
+
+  private
+
+  def in_window(image, window)
+    Enumerator.new do |y|
+      window.width_range.each do |width|
+        window.height_range.each do |height|
+          y << image.get_pixel(width, height)
         end
       end
     end
-
-    area = BOX_WIDTH * BOX_HEIGHT
-    good_colors > (area * 0.1)
   end
 end
